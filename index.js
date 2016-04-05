@@ -328,6 +328,26 @@ module.exports = function(config) {
     });
   }
 
+  /**
+   * @wraps gateway.subscription.cancel
+   * @param {String} subscriptionId, subscription ID
+   * @return {Promise}
+   */
+  gateway.cancelSubscription = function(subscriptionId) {
+    return new Promise((resolve, reject) => {
+      if (!subscriptionId) {
+        return reject(new Error('Subscription ID is required to cancel subscription'));
+      }
+
+      this.subscription.cancel(subscriptionId, function(error, result) {
+        if (error) {
+          return reject(error);
+        }
+        return resolve(result);
+      });
+    });
+  }
+
   function handleEnv(environment) {
     return environment[0].toUpperCase() + environment.slice(1).toLowerCase();
   }

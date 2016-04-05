@@ -139,4 +139,34 @@ describe('braintree wrapper', function() {
       done();
     }).catch(done);
   });
+
+  it('cancels a subscription', function(done) {
+    this.timeout(5000);
+    co(function*() {
+      const getPlans = yield gateway.findAllPlans();
+      const planId = getPlans.plans[0].id;
+
+      const newUser = yield gateway.createCustomer({
+        id: user.id,
+        paymentMethodNonce: fakeData.nonces.valid.nonce
+      });
+      assert.ok(newUser.success);
+      assert.equal(newUser.customer.id, 'unique123');
+      expect(newUser.customer.paymentMethods[0]).to.have.property('token');
+      const token = newUser.customer.paymentMethods[0].token;
+
+      const newSubscription = yield gateway.createSubscription({
+        planId: planId,
+        paymentMethodToken: token
+      });
+      assert.ok(newSubscription.success);
+      assert.equal(newSubscription.subscription.status, 'Active');
+      const subscriptionId = newSubscription.subscription.id;
+
+      const response = yield gateway.cancelSubscription(subscriptionId);
+      assert.ok(response.success);
+      assert.equal(response.subscription.status, 'Canceled');
+      done();
+    }).catch(done);
+  });
 });
