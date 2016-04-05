@@ -16,7 +16,7 @@ var config = {
   privateKey: yourPrivateKey,
   merchantId: yourMerchantId
 };
-var gateway = require('braintree-js')(config);
+var gateway = require('braintree-node')(config);
 
 gateway.createCustomer(...)
 ```
@@ -158,6 +158,50 @@ app.put('/me', function(req, res) {
     .then(response => {...})
     .catch(error => {...});
 })
+```
+
+###.createSubscription(options)
+
+Wrapper for `.subscription.create`, rejects if planId or nonce is undefined.
+
+```
+app.post('/subscribe', function(req, res) {
+  var planId = req.body.planId;
+  var nonce = req.body.nonce;
+  var options = { planId: planId, paymentMethodNonce: nonce };
+  gateway.createTransaction(options)
+    .then(handleSuccessfulSubscription)
+    .catch(handleFailedSubscription);
+});
+```
+
+###.findSubscription(id)
+
+Finds the customer's subscription with the given id.
+
+```
+app.get('/findSubscription', function(req, res) {
+  var theID = req.body;
+  gateway.findSubscription(theID)
+    .then(function(response) {
+      res.json({planId: response.planId});
+    })
+    .catch(function(error) {
+      res.status(400).json({error: error});
+    });
+})
+```
+
+###.cancelSubscription(id)
+Deletes the customer's subscription with the given id.
+
+```
+app.del('/cancelSubscription', function(req, res) {
+  var theID = req.body;
+  gateway.cancelSubscription(theID)
+    .then(response => {...})
+    .catch(error => {...});
+});
 ```
 
 
