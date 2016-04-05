@@ -2,6 +2,10 @@
   "name": "braintree-node",
   "version": "1.1.0",
   "description": "A promise-focused wrapper around the Braintree node.js SDK",
+  "repository": {
+    "type": "git",
+    "url": "https://www.github.com/varunjayaraman/braintree-node"
+  },
   "main": "index.js",
   "scripts": {
     "test": "NODE_PATH=./ mocha test.js"
