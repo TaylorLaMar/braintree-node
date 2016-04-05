@@ -267,6 +267,32 @@ module.exports = function(config) {
   };
 
   /**
+   * @wraps gateway.paymentMethod.create
+   * @param {Object} options, used for creating a payment method
+   * @return {Promise}
+   */
+  gateway.createPaymentMethod = function(options) {
+    return new Promise((resolve, reject) => {
+      if (!options) {
+        return reject(new Error('Customer ID and payment method nonce is required to create payment method'));
+      }
+      if (!options.customerId) {
+        return reject(new Error('Customer ID is required to create payment method'));
+      }
+      if (!options.paymentMethodNonce) {
+        return reject(new Error('Payment method nonce is required to create payment method'));
+      }
+
+      this.paymentMethod.create(options, function(error, result) {
+        if (error) {
+          return reject(error);
+        }
+        return resolve(result);
+      });
+    });
+  }
+
+  /**
    * @param {String} token
    * @return {Promise}
    */
@@ -340,6 +366,26 @@ module.exports = function(config) {
       }
 
       this.subscription.cancel(subscriptionId, function(error, result) {
+        if (error) {
+          return reject(error);
+        }
+        return resolve(result);
+      });
+    });
+  }
+
+  /**
+   * @wraps gateway.subscription.find
+   * @param {String} subscriptionId, subscription ID
+   * @return {Promise}
+   */
+  gateway.findSubscription = function(subscriptionId) {
+    return new Promise((resolve, reject) => {
+      if (!subscriptionId) {
+        return reject(new Error('Subscription ID is required to find subscription'));
+      }
+
+      this.subscription.find(subscriptionId, function(error, result) {
         if (error) {
           return reject(error);
         }

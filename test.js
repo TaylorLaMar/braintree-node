@@ -46,17 +46,20 @@ describe('braintree wrapper', function() {
     done();
   }).catch(done));
 
-  it('can find a customer', done => co(function*() {
-    try {
-      yield gateway.findCustomer(user.id);
-    } catch (error) {
-      assert.equal(error.type, 'notFoundError');
-    }
-    yield gateway.createCustomer(user);
-    const response = yield gateway.findCustomer(user.id);
-    assert.equal(response.id, 'unique123');
-    done();
-  }).catch(done));
+  it('can find a customer', function(done) {
+    this.timeout(5000);
+    co(function*() {
+      try {
+        yield gateway.findCustomer(user.id);
+      } catch (error) {
+        assert.equal(error.type, 'notFoundError');
+      }
+      yield gateway.createCustomer(user);
+      const response = yield gateway.findCustomer(user.id);
+      assert.equal(response.id, 'unique123');
+      done();
+    }).catch(done);
+  });
 
   it('can update a customer', done => co(function*() {
     yield gateway.createCustomer(user);
@@ -94,19 +97,33 @@ describe('braintree wrapper', function() {
     this.timeout(5000);
     co(function*() {
       const response = yield gateway.createTransaction({
-        amount: 15,
+        amount: 25,
         paymentMethodNonce: fakeData.nonces.valid.nonce
       });
       assert.ok(response.success);
-      assert.equal(response.transaction.amount, '15.00');
+      assert.equal(response.transaction.amount, '25.00');
       const id = response.transaction.id;
 
-      const cloneResponse = yield gateway.cloneTransaction(id, 35);
+      const cloneResponse = yield gateway.cloneTransaction(id, '35.00');
       assert.ok(cloneResponse.success);
       assert.equal(cloneResponse.transaction.amount, '35.00');
       done();
     }).catch(done);
   });
+
+  it('can create a payment method', done => co(function*() {
+    const newCustomer = yield gateway.createCustomer(user);
+    assert.ok(newCustomer.success);
+    assert.equal(newCustomer.customer.id, 'unique123');
+
+    const response = yield gateway.createPaymentMethod({
+      customerId: newCustomer.customer.id,
+      paymentMethodNonce: fakeData.nonces.valid.nonce
+    });
+    assert.ok(response.success);
+    expect(response.paymentMethod).to.have.property('token');
+    done();
+  }).catch(done));
 
   it('should have atleast one plan ready for subscriptions', done => co(function*() {
     const response = yield gateway.findAllPlans();
@@ -140,7 +157,37 @@ describe('braintree wrapper', function() {
     }).catch(done);
   });
 
-  it('cancels a subscription', function(done) {
+  it('can find a subscription', function(done) {
+    this.timeout(8000);
+    co(function*() {
+      const getPlans = yield gateway.findAllPlans();
+      const planId = getPlans.plans[0].id;
+
+      const newUser = yield gateway.createCustomer({
+        id: user.id,
+        paymentMethodNonce: fakeData.nonces.valid.nonce
+      });
+      assert.ok(newUser.success);
+      assert.equal(newUser.customer.id, 'unique123');
+      expect(newUser.customer.paymentMethods[0]).to.have.property('token');
+      const token = newUser.customer.paymentMethods[0].token;
+
+      const newSubscription = yield gateway.createSubscription({
+        planId: planId,
+        paymentMethodToken: token
+      });
+      assert.ok(newSubscription.success);
+      assert.equal(newSubscription.subscription.status, 'Active');
+      const subscriptionId = newSubscription.subscription.id;
+
+      const response = yield gateway.findSubscription(subscriptionId);
+      assert.equal(response.id, subscriptionId);
+      assert.equal(response.status, 'Active');
+      done();
+    }).catch(done);
+  });
+
+  it('can cancel a subscription', function(done) {
     this.timeout(5000);
     co(function*() {
       const getPlans = yield gateway.findAllPlans();
@@ -169,4 +216,5 @@ describe('braintree wrapper', function() {
       done();
     }).catch(done);
   });
+
 });
