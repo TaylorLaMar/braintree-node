@@ -285,6 +285,49 @@ module.exports = function(config) {
       });
     });
   }
+
+  /**
+   * @wraps gateway.plans.all
+   * @return {Promise}
+   */
+   gateway.findAllPlans = function() {
+    return new Promise((resolve, reject) => {
+      this.plan.all(function(error, result) {
+        if (error) {
+          return reject(error);
+        }
+        return resolve(result);
+      });
+    });
+   };
+
+
+  /**
+   * @wraps gateway.subscription.create
+   * @param {Object} options, these will be used for creating new subscription
+   * @return {Promise}
+   */
+  gateway.createSubscription = function(options) {
+    return new Promise((resolve, reject) => {
+      if (!options) {
+        return reject(new Error('Plan ID and payment method token is required'));
+      }
+      if (!options.planId) {
+        return reject(new Error('You need to provide plan ID (name)'));
+      }
+      if (!options.paymentMethodToken) {
+        return reject(new Error('Payment method token is required to create subscription'));
+      }
+
+      this.subscription.create(options, function(error, result) {
+        if (error) {
+          return reject(error);
+        }
+        return resolve(result);
+      });
+    });
+  }
+
   function handleEnv(environment) {
     return environment[0].toUpperCase() + environment.slice(1).toLowerCase();
   }

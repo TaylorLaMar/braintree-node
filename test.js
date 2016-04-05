@@ -3,7 +3,8 @@ const co = require('co');
 const _ = require('lodash');
 const fs = require('fs');
 const yaml = require('js-yaml');
-const assert = require('assert');
+const assert = require('chai').assert;
+const expect = require('chai').expect;
 const config = require('./config');
 const gateway = require('./')(config);
 
@@ -103,6 +104,38 @@ describe('braintree wrapper', function() {
       const cloneResponse = yield gateway.cloneTransaction(id, 35);
       assert.ok(cloneResponse.success);
       assert.equal(cloneResponse.transaction.amount, '35.00');
+      done();
+    }).catch(done);
+  });
+
+  it('should have atleast one plan ready for subscriptions', done => co(function*() {
+    const response = yield gateway.findAllPlans();
+    assert.ok(response.success);
+    expect(response.plans[0]).to.have.property('id');
+    done();
+  }).catch(done));
+
+  it('creates a subscription', function(done) {
+    this.timeout(5000);
+    co(function*() {
+      const getPlans = yield gateway.findAllPlans();
+      const planId = getPlans.plans[0].id;
+
+      const newUser = yield gateway.createCustomer({
+        id: user.id,
+        paymentMethodNonce: fakeData.nonces.valid.nonce
+      });
+      assert.ok(newUser.success);
+      assert.equal(newUser.customer.id, 'unique123');
+      expect(newUser.customer.paymentMethods[0]).to.have.property('token');
+      const token = newUser.customer.paymentMethods[0].token;
+
+      const response = yield gateway.createSubscription({
+        planId: planId,
+        paymentMethodToken: token
+      });
+      assert.ok(response.success);
+      assert.equal(response.subscription.status, 'Active');
       done();
     }).catch(done);
   });
