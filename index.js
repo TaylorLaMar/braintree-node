@@ -1,4 +1,3 @@
-'use strict';
 const braintree = require('braintree');
 /**
  * Module returns an instance of the braintree gateway
