@@ -1,4 +1,3 @@
-'use strict';
 const braintree = require('braintree');
 /**
  * Module returns an instance of the braintree gateway
@@ -267,6 +266,32 @@ module.exports = function(config) {
   };
 
   /**
+   * @wraps gateway.paymentMethod.create
+   * @param {Object} options, used for creating a payment method
+   * @return {Promise}
+   */
+  gateway.createPaymentMethod = function(options) {
+    return new Promise((resolve, reject) => {
+      if (!options) {
+        return reject(new Error('Customer ID and payment method nonce is required to create payment method'));
+      }
+      if (!options.customerId) {
+        return reject(new Error('Customer ID is required to create payment method'));
+      }
+      if (!options.paymentMethodNonce) {
+        return reject(new Error('Payment method nonce is required to create payment method'));
+      }
+
+      this.paymentMethod.create(options, function(error, result) {
+        if (error) {
+          return reject(error);
+        }
+        return resolve(result);
+      });
+    });
+  }
+
+  /**
    * @param {String} token
    * @return {Promise}
    */
@@ -285,6 +310,89 @@ module.exports = function(config) {
       });
     });
   }
+
+  /**
+   * @wraps gateway.plans.all
+   * @return {Promise}
+   */
+   gateway.findAllPlans = function() {
+    return new Promise((resolve, reject) => {
+      this.plan.all(function(error, result) {
+        if (error) {
+          return reject(error);
+        }
+        return resolve(result);
+      });
+    });
+   };
+
+
+  /**
+   * @wraps gateway.subscription.create
+   * @param {Object} options, these will be used for creating new subscription
+   * @return {Promise}
+   */
+  gateway.createSubscription = function(options) {
+    return new Promise((resolve, reject) => {
+      if (!options) {
+        return reject(new Error('Plan ID and payment method token is required'));
+      }
+      if (!options.planId) {
+        return reject(new Error('You need to provide plan ID (name)'));
+      }
+      if (!options.paymentMethodToken) {
+        return reject(new Error('Payment method token is required to create subscription'));
+      }
+
+      this.subscription.create(options, function(error, result) {
+        if (error) {
+          return reject(error);
+        }
+        return resolve(result);
+      });
+    });
+  }
+
+  /**
+   * @wraps gateway.subscription.cancel
+   * @param {String} subscriptionId, subscription ID
+   * @return {Promise}
+   */
+  gateway.cancelSubscription = function(subscriptionId) {
+    return new Promise((resolve, reject) => {
+      if (!subscriptionId) {
+        return reject(new Error('Subscription ID is required to cancel subscription'));
+      }
+
+      this.subscription.cancel(subscriptionId, function(error, result) {
+        if (error) {
+          return reject(error);
+        }
+        return resolve(result);
+      });
+    });
+  }
+
+  /**
+   * @wraps gateway.subscription.find
+   * @param {String} subscriptionId, subscription ID
+   * @return {Promise}
+   */
+  gateway.findSubscription = function(subscriptionId) {
+    return new Promise((resolve, reject) => {
+      if (!subscriptionId) {
+        return reject(new Error('Subscription ID is required to find subscription'));
+      }
+
+      this.subscription.find(subscriptionId, function(error, result) {
+        if (error) {
+          return reject(error);
+        }
+        return resolve(result);
+      });
+    });
+  }
+
   function handleEnv(environment) {
     return environment[0].toUpperCase() + environment.slice(1).toLowerCase();
   }
