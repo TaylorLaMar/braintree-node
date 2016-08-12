@@ -125,6 +125,24 @@ describe('braintree wrapper', function() {
     done();
   }).catch(done));
 
+  it('can find a payment method', function(done) {
+    co(function*() {
+      const newCustomer = yield gateway.createCustomer(user);
+
+      const response = yield gateway.createPaymentMethod({
+        customerId: newCustomer.customer.id,
+        paymentMethodNonce: fakeData.nonces.valid.nonce
+      });
+
+      const token = response.creditCard.token;
+
+      const retrieved = yield gateway.findPaymentMethod(token);
+      assert.ok(retrieved);
+      assert.equal(retrieved.token, token);
+      done();
+    }).catch(done);
+  });
+
   it('should have atleast one plan ready for subscriptions', done => co(function*() {
     const response = yield gateway.findAllPlans();
     assert.ok(response.success);
