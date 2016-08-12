@@ -289,7 +289,28 @@ module.exports = function(config) {
         return resolve(result);
       });
     });
-  }
+  };
+
+  /**
+   * Find a payment method based on a token
+   *
+   * @param {String} token
+   * @return {Promise}
+   */
+  gateway.findPaymentMethod = function(token) {
+    return new Promise(function(resolve, reject) {
+      if (!token) {
+        return reject(new Error('No token provided to find payment method'));
+      }
+
+      this.paymentMethod.find(token, function(error, result) {
+        if (error) {
+          return reject(error);
+        }
+        return resolve(result);
+      });
+    });
+  };
 
   /**
    * @param {String} token
@@ -309,7 +330,7 @@ module.exports = function(config) {
         return resolve(result);
       });
     });
-  }
+  };
 
   /**
    * @wraps gateway.plans.all
