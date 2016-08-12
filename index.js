@@ -298,7 +298,7 @@ module.exports = function(config) {
    * @return {Promise}
    */
   gateway.findPaymentMethod = function(token) {
-    return new Promise(function(resolve, reject) {
+    return new Promise((resolve, reject) => {
       if (!token) {
         return reject(new Error('No token provided to find payment method'));
       }
