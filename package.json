@@ -14,10 +14,12 @@
   "license": "ISC",
   "dependencies": {
     "braintree": "1.37.1",
-    "chai": "^3.5.0",
     "co": "4.6.0",
     "js-yaml": "3.5.4",
-    "lodash": "4.6.1",
-    "mocha": "3.2.0"
+    "lodash": "4.6.1"
+  },
+  "devDependencies": {
+    "chai": "^3.5.0",
+    "mocha": "^3.2.0"
   }
 }
