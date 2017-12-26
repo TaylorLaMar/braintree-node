@@ -1,39 +1,37 @@
 const braintree = require('braintree');
+
 /**
  * Module returns an instance of the braintree gateway
- * @param {config} config, must contain the environment,
- *   merchantId, publicKey, and privateKey
+ * @param  {config} config
  * @return {gateway}
  */
 module.exports = function(config) {
-  // handle no config
+  // Handle invalid configuration
   if (!config) {
     throw new Error('You must pass in a configuration object to instantiate the braintree gateway');
   }
   if (!config.environment) {
-    throw new Error(`Configuration object requires environment`);
+    throw new Error('Configuration object requires environment');
   }
   if (!config.merchantId) {
-    throw new Error(`Configuration object requires merchantId`);
+    throw new Error('Configuration object requires merchantId');
   }
   if (!config.publicKey) {
-    throw new Error(`Configuration object requires publicKey`);
+    throw new Error('Configuration object requires publicKey');
   }
   if (!config.privateKey) {
-    throw new Error(`Configuration object requires privateKey`);
+    throw new Error('Configuration object requires privateKey');
   }
 
-  /*
-  ----------------------------------------------------------------
-  */
-
+  // Configure Braintree environment
   config.environment = braintree.Environment[handleEnv(config.environment)];
-  // instantiate gateway object with configuration
+
+  // Instantiate gateway object with configuration
   const gateway = braintree.connect(config);
 
   /**
-   * @wraps gateway.clientToken.generate
-   * @return {Promise}
+   * Wraps gateway.clientToken.generate
+   * @return {[type]}
    */
   gateway.generateClientToken = function() {
     return new Promise((resolve, reject) => {
@@ -51,7 +49,6 @@ module.exports = function(config) {
    * @param {Transaction} transaction, required, contains `amount` and `paymentMethodNonce` or `paymentMethodToken`
    * @param {options} options, optional
    */
-
   gateway.createTransaction = function(transaction, options) {
     return new Promise((resolve, reject) => {
       if (!transaction) {
@@ -64,9 +61,7 @@ module.exports = function(config) {
         return reject(new Error('Nonce or Token required to create transaction'));
       }
 
-      if (options) {
-        transaction.options = options;
-      }
+      if (options) transaction.options = options;
 
       this.transaction.sale(transaction, function(error, result) {
         if (error) {
@@ -77,6 +72,17 @@ module.exports = function(config) {
     });
   };
 
+  gateway.findTransaction = function(transactionID) {
+    return new Promise((resolve, reject) => {
+      if (!transactionID) return reject(new Error('Transaction ID required'));
+
+      this.transaction.find(transactionID, function(e, response) {
+        if (e) return reject(e);
+        return resolve(response);
+      });
+    });
+  }
+
   /**
    * @wraps gateway.transaction.cloneTransaction
    * @param {String} transactionId
@@ -84,7 +90,6 @@ module.exports = function(config) {
    * @param {Boolean} submitForSettlement, defaults to true
    * @return {Promise}
    */
-
   gateway.cloneTransaction = function(transactionId, amount, submitForSettlement) {
     return new Promise((resolve, reject) => {
       if (!transactionId) {
@@ -115,11 +120,10 @@ module.exports = function(config) {
 
   /**
    * @wraps gateway.customer.find
-   * @param {String} id, required
+   * @param {string} id, required
    * @return {Promise}
    */
-
-   gateway.findCustomer = function(id) {
+  gateway.findCustomer = function(id) {
     return new Promise((resolve, reject) => {
       if (!id) {
         return reject(new Error('id required to find customer'));
@@ -131,7 +135,7 @@ module.exports = function(config) {
         return resolve(result);
       });
     });
-   };
+  };
 
   /**
     * @wraps gateway.customer.create
@@ -176,10 +180,9 @@ module.exports = function(config) {
 
   /**
    * @wraps gateway.customer.delete
-   * @param {String} id, braintree id of user to delete
+   * @param {string} id, braintree id of user to delete
    * @return {Promise}
    */
-
   gateway.deleteCustomer = function(id) {
     return new Promise((resolve, reject) => {
       if (!id) {
@@ -194,11 +197,10 @@ module.exports = function(config) {
     });
   }
 
-
   /**
-   * @param {String} id of user to update
-   * @param {Update} update user object to update|create - attaches id to user if not null
-   * @param {Boolean} upsert, create new document if not found
+   * @param {string} id of user to update
+   * @param {object} update user object to update|create - attaches id to user if not null
+   * @param {boolean} upsert, create new document if not found
    * @return {Promise}
    */
   gateway.findOneAndUpdate = function(id, update, upsert) {
@@ -222,10 +224,9 @@ module.exports = function(config) {
   };
 
   /**
-   * @param {Array} user objects to create, required
+   * @param {array} user objects to create, required
    * @return {Promise}
    */
-
   gateway.createMultipleCustomers = function(users) {
     return new Promise((resolve, reject) => {
       if (!users) {
@@ -236,16 +237,16 @@ module.exports = function(config) {
       }
 
       const promises = [];
-      for (var i = 0; i < users.length; i++) {
+      for (let i = 0; i < users.length; i++) {
         promises.push(this.createCustomer(users[i]));
-      };
+      }
 
       return resolve(Promise.all(promises));
     });
   };
 
   /**
-   * @param {Array} array of user ids, required
+   * @param {array} array of user IDs, required
    * @return {Promise}
    */
   gateway.deleteMultipleCustomers = function(users) {
@@ -258,7 +259,7 @@ module.exports = function(config) {
       }
 
       const promises = [];
-      for (var i = 0; i < users.length; i++) {
+      for (let i = 0; i < users.length; i++) {
         promises.push(this.deleteCustomer(users[i].id));
       }
       return resolve(Promise.all(promises));
@@ -267,7 +268,7 @@ module.exports = function(config) {
 
   /**
    * @wraps gateway.paymentMethod.create
-   * @param {Object} options, used for creating a payment method
+   * @param {object} options, used for creating a payment method
    * @return {Promise}
    */
   gateway.createPaymentMethod = function(options) {
@@ -293,8 +294,7 @@ module.exports = function(config) {
 
   /**
    * Find a payment method based on a token
-   *
-   * @param {String} token
+   * @param {string} token
    * @return {Promise}
    */
   gateway.findPaymentMethod = function(token) {
@@ -313,10 +313,9 @@ module.exports = function(config) {
   };
 
   /**
-   * @param {String} token
+   * @param {string} token
    * @return {Promise}
    */
-
   gateway.deletePaymentMethod = function(token) {
     return new Promise((resolve, reject) => {
       if (!token) {
@@ -336,7 +335,7 @@ module.exports = function(config) {
    * @wraps gateway.plans.all
    * @return {Promise}
    */
-   gateway.findAllPlans = function() {
+  gateway.findAllPlans = function() {
     return new Promise((resolve, reject) => {
       this.plan.all(function(error, result) {
         if (error) {
@@ -345,12 +344,11 @@ module.exports = function(config) {
         return resolve(result);
       });
     });
-   };
-
+  };
 
   /**
    * @wraps gateway.subscription.create
-   * @param {Object} options, these will be used for creating new subscription
+   * @param {object} options, these will be used for creating new subscription
    * @return {Promise}
    */
   gateway.createSubscription = function(options) {
@@ -376,16 +374,16 @@ module.exports = function(config) {
 
   /**
    * @wraps gateway.subscription.cancel
-   * @param {String} subscriptionId, subscription ID
+   * @param {string} subscriptionID
    * @return {Promise}
    */
-  gateway.cancelSubscription = function(subscriptionId) {
+  gateway.cancelSubscription = function(subscriptionID) {
     return new Promise((resolve, reject) => {
-      if (!subscriptionId) {
+      if (!subscriptionID) {
         return reject(new Error('Subscription ID is required to cancel subscription'));
       }
 
-      this.subscription.cancel(subscriptionId, function(error, result) {
+      this.subscription.cancel(subscriptionID, function(error, result) {
         if (error) {
           return reject(error);
         }
@@ -396,16 +394,16 @@ module.exports = function(config) {
 
   /**
    * @wraps gateway.subscription.find
-   * @param {String} subscriptionId, subscription ID
+   * @param {string} subscription ID
    * @return {Promise}
    */
-  gateway.findSubscription = function(subscriptionId) {
+  gateway.findSubscription = function(subscriptionID) {
     return new Promise((resolve, reject) => {
-      if (!subscriptionId) {
+      if (!subscriptionID) {
         return reject(new Error('Subscription ID is required to find subscription'));
       }
 
-      this.subscription.find(subscriptionId, function(error, result) {
+      this.subscription.find(subscriptionID, function(error, result) {
         if (error) {
           return reject(error);
         }
