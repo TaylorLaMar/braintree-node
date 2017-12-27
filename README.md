@@ -1,17 +1,15 @@
-#braintree-node - promisifies the braintree node.js SDK with extra helper utilities
+# Promisifies Braintree's Node SDK
 
-##Note: I am in no way affiliated with braintree and this is not the official braintree node.js SDK. If you are looking for the official SDK, visit this link : https://www.npmjs.com/package/braintree
-
-##Setup
+## Setup
 
 1. Run the following:
 `npm install --save braintree-node`
 
-2. instantiate the gateway, passing in a configuration object. In lieu of `braintree.Environment.Sandbox` or `braintree.Environment.Production`, just set the environment property on your configuration object to the string of the environment you want, like so:
+2. Instantiate the gateway, passing in a configuration object. In lieu of `braintree.Environment.Sandbox` or `braintree.Environment.Production`, just set the environment property on your configuration object to the string of the environment you want, like so:
 
 ```
 var config = {
-  environment: 'Production',
+  environment: 'Production', // Or 'Sandbox'
   publicKey: yourPublicKey,
   privateKey: yourPrivateKey,
   merchantId: yourMerchantId
@@ -28,16 +26,16 @@ Example:
 ```
 var customer = { id: 'roondog', firstName: 'roonie' };
 gateway.createCustomer(customer)
-  .then(function(response) {
+  .then(() => {
     // handle successful response...
   })
-  .catch(function(error) {
+  .catch(() => {
     // handle rejection...
-  })
+  });
 ```
-#API
+## API
 
-###.createCustomer(user)
+### .createCustomer(user)
 
 You can create a customer like so:
 
@@ -53,7 +51,7 @@ app.post('/createBraintreeUser', function(req, res) {
 });
 ```
 
-###.createMultipleCustomers(users)
+### .createMultipleCustomers(users)
 
 Create multiple users
 
@@ -67,7 +65,7 @@ app.post('/createManyBraintreeUsers', function(req, res) {
 
 ```
 
-###.createTransaction(amount, nonce, options)
+### .createTransaction(transaction, options)
 
 Wrapper for `.transaction.sale`, rejects if amount or nonce is undefined. Any `options` passed in will be set on the `options` property of the object that `transaction.sale` takes in the SDK
 
@@ -76,13 +74,13 @@ app.post('/checkout', function(req, res) {
   var amount = req.body.amount;
   var nonce = req.body.nonce;
   var options = req.body.paymentOptions;
-  gateway.createTransaction(amount, nonce, options)
+  gateway.createTransaction({ amount: amount, paymentMethodNonce: nonce }, options)
     .then(handleSuccessfulTransaction)
     .catch(handleFailedTransaction);
 });
 ```
 
-###.deleteCustomer(id)
+### .deleteCustomer(id)
 Deletes the braintree user with the given id.
 
 ```
@@ -94,7 +92,7 @@ app.del('/deleteBraintreeUser', function(req, res) {
 });
 ```
 
-###.deleteMultipleCustomers(users)
+### .deleteMultipleCustomers(users)
 Deletes all braintree users in an array of users. Each object in the array only needs an `id` property so braintree can find the user to delete.
 
 ```
@@ -106,7 +104,7 @@ app.del('/deleteBraintreeUsers', function(req, res) {
 });
 ```
 
-###.findCustomer(id)
+### .findCustomer(id)
 
 Finds the braintree user with the given id. Resolves with the customer object (unlike most other methods which resolve with the http response from braintree).
 
@@ -123,7 +121,7 @@ app.get('/findBraintreeUser', function(req, res) {
 })
 ```
 
-###.findOneAndUpdate(id, update, upsert)
+### .findOneAndUpdate(id, update, upsert)
 Takes a user object and updates it if it exists, and creates it if `upsert` is set to true
 ```
 app.put('/updateOrCreate', function(req, res) {
@@ -136,7 +134,7 @@ app.put('/updateOrCreate', function(req, res) {
 });
 ```
 
-###.generateClientToken()
+### .generateClientToken()
 
 Generates client token
 
@@ -148,8 +146,8 @@ app.get('/token', function(req, res) {
 });
 ```
 
-###.updateCustomer(id, update)
-Updates braintree user with the given `id` and updates any properties on the `update` object
+### .updateCustomer(id, update)
+Updates Braintree user with the given `id` and updates any properties on the `update` object
 
 ```
 app.put('/me', function(req, res) {
@@ -160,7 +158,7 @@ app.put('/me', function(req, res) {
 })
 ```
 
-###.createSubscription(options)
+### .createSubscription(options)
 
 Wrapper for `.subscription.create`, rejects if planId or nonce is undefined.
 
@@ -175,14 +173,14 @@ app.post('/subscribe', function(req, res) {
 });
 ```
 
-###.findSubscription(id)
+### .findSubscription(id)
 
-Finds the customer's subscription with the given id.
+Finds the customer's subscription with a given id.
 
 ```
 app.get('/findSubscription', function(req, res) {
-  var theID = req.body;
-  gateway.findSubscription(theID)
+  var id = req.body;
+  gateway.findSubscription(id)
     .then(function(response) {
       res.json({planId: response.planId});
     })
@@ -192,16 +190,14 @@ app.get('/findSubscription', function(req, res) {
 })
 ```
 
-###.cancelSubscription(id)
-Deletes the customer's subscription with the given id.
+### .cancelSubscription(id)
+Deletes the customer's subscription with a given id.
 
 ```
 app.del('/cancelSubscription', function(req, res) {
-  var theID = req.body;
-  gateway.cancelSubscription(theID)
+  var id = req.body;
+  gateway.cancelSubscription(id)
     .then(response => {...})
     .catch(error => {...});
 });
 ```
-
-
