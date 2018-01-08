@@ -228,7 +228,7 @@ module.exports = function(config) {
    */
   gateway.createPaymentMethod = function(options) {
     return new Promise((resolve, reject) => {
-      if (!options) {return reject(new Error('Customer ID and payment method nonce is required to create payment method'));
+      if (!options) return reject(new Error('Customer ID and payment method nonce is required to create payment method'));
       if (!options.customerId) return reject(new Error('Customer ID is required to create payment method'));
       if (!options.paymentMethodNonce) return reject(new Error('Payment method nonce is required to create payment method'));
 
