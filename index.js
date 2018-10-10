@@ -40,7 +40,7 @@ module.exports = function(config) {
    */
   gateway.createTransaction = function(transaction, options) {
     return new Promise((resolve, reject) => {
-      if (!transaction) return reject(new Error('transaction object required'));
+      if (!transaction) return reject(new Error('Transaction object required'));
       if (!transaction.amount) return reject(new Error('Amount required to create transaction'));
       if (!transaction.paymentMethodNonce && !transaction.paymentMethodToken) return reject(new Error('Nonce or Token required to create transaction'));
 
@@ -53,13 +53,61 @@ module.exports = function(config) {
     });
   };
 
+  /**
+   * @param {string} transactionID
+   * @return {Promise<any>}
+   */
   gateway.findTransaction = function(transactionID) {
     return new Promise((resolve, reject) => {
       if (!transactionID) return reject(new Error('Transaction ID required'));
 
-      this.transaction.find(transactionID, function(e, response) {
-        if (e) return reject(e);
+      this.transaction.find(transactionID, function(error, response) {
+        if (error) return reject(e);
         return resolve(response);
+      });
+    });
+  }
+
+  /**
+   * @param {string} customerID
+   * @return {Promise<any>}
+   */
+  gateway.searchTransactions = function(customerID) {
+    return new Promise((resolve, reject) => {
+      if (!customerID) return reject(new Error('customerID is required to search'));
+
+      this.transaction.search(function (search) {
+        search.customerId().is(customerID);
+      }, async function (error, response) {
+        if (error) return reject(error);
+
+        const streamLength = response.ids.length;
+        const transactions = [];
+        let counter = 0;
+        
+        await new Promise((res) => {
+          response.each(function (err, transaction) {
+            if (!err) {
+              transactions.push({
+                id: transaction.id,
+                amount: transaction.amount,
+                createdDate: transaction.createdAt,
+                creditCard: {
+                  cardType: transaction.creditCard.cardType,
+                  last4: transaction.creditCard.last4
+                }
+              });
+            }
+
+            counter += 1;
+  
+            if (counter === streamLength) {
+              res();
+            }
+          });
+        });        
+
+        return resolve(transactions);
       });
     });
   }
@@ -100,7 +148,7 @@ module.exports = function(config) {
    */
   gateway.findCustomer = function(id) {
     return new Promise((resolve, reject) => {
-      if (!id) return reject(new Error('id required to find customer'));
+      if (!id) return reject(new Error('ID required to find customer'));
 
       this.customer.find(id, function(error, result) {
         if (error) return reject(error);
@@ -136,7 +184,7 @@ module.exports = function(config) {
 
   gateway.updateCustomer = function(id, update) {
     return new Promise((resolve, reject) => {
-      if (!id) return reject(new Error('id required to update customer'));
+      if (!id) return reject(new Error('ID required to update customer'));
       this.customer.update(id, update, function(error, result) {
         if (error) return reject(error);
         return resolve(result);
@@ -151,7 +199,7 @@ module.exports = function(config) {
    */
   gateway.deleteCustomer = function(id) {
     return new Promise((resolve, reject) => {
-      if (!id) return reject(new Error('id required to delete customer'));
+      if (!id) return reject(new Error('ID required to delete customer'));
 
       this.customer.delete(id, function(error, result) {
         if (error) return reject(error);
@@ -190,7 +238,7 @@ module.exports = function(config) {
    */
   gateway.createMultipleCustomers = function(users) {
     return new Promise((resolve, reject) => {
-      if (!users) return reject(new Error('users required'));
+      if (!users) return reject(new Error('Users required'));
 
       if (!Array.isArray(users)) users = [users];
 
@@ -209,7 +257,7 @@ module.exports = function(config) {
    */
   gateway.deleteMultipleCustomers = function(users) {
     return new Promise((resolve, reject) => {
-      if (!users) return reject(new Error('users required'));
+      if (!users) return reject(new Error('Users required'));
 
       if (!Array.isArray(users)) users = [users];
 
@@ -228,7 +276,7 @@ module.exports = function(config) {
    */
   gateway.createPaymentMethod = function(options) {
     return new Promise((resolve, reject) => {
-      if (!options) {return reject(new Error('Customer ID and payment method nonce is required to create payment method'));
+      if (!options) return reject(new Error('Customer ID and payment method nonce is required to create payment method'));
       if (!options.customerId) return reject(new Error('Customer ID is required to create payment method'));
       if (!options.paymentMethodNonce) return reject(new Error('Payment method nonce is required to create payment method'));
 
