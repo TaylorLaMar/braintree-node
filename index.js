@@ -95,7 +95,8 @@ module.exports = function(config) {
                 creditCard: {
                   cardType: transaction.creditCard.cardType,
                   last4: transaction.creditCard.last4
-                }
+                },
+                processorResponseText: transaction.processorResponseText
               });
             }
 
