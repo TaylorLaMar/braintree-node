@@ -80,6 +80,34 @@ app.post('/checkout', function(req, res) {
 });
 ```
 
+### .findTransaction(transactionID)
+
+Wrapper for `.transaction.find`, rejects if transactionID is undefined.
+
+```
+app.get('/transaction/:id', function(req, res) {
+  var transactionID = req.params.id;
+  
+  gateway.findTransaction(transactionID)
+    .then(handleSuccess)
+    .catch(handleRejection);
+});
+```
+
+### .searchTransactions(customerID)
+
+Wrapper for `.transaction.search`, rejects if customerID is undefined. Fetches all transactions with a given Braintree customer ID.
+
+```
+app.get('/transactions/:customerID', function(req, res) {
+  var transactionID = req.params.customerID;
+  
+  gateway.searchTransactions(customerID)
+    .then(handleSuccess)
+    .catch(handleRejection);
+});
+```
+
 ### .deleteCustomer(id)
 Deletes the braintree user with the given id.
 
