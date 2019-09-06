@@ -3,7 +3,7 @@
 ## Setup
 
 1. Run the following:
-`npm install --save braintree-node`
+`npm install --save git+https://github.com/TaylorLaMar/braintree-node.git`
 
 2. Instantiate the gateway, passing in a configuration object. In lieu of `braintree.Environment.Sandbox` or `braintree.Environment.Production`, just set the environment property on your configuration object to the string of the environment you want, like so:
 
@@ -19,7 +19,7 @@ var gateway = require('braintree-node')(config);
 gateway.createCustomer(...)
 ```
 
-Most methods take the same parameters as the current Node.js SDK methods, except for the callback. Instead, you can `.then` off of the gateway methods or `yield` them if you are using generators (or `await`, if you're transpiling ES7 down with babel).
+Most methods take the same parameters as the current Node.js SDK methods, except for the callback. Instead, you can `.then` off of the gateway methods or `yield` them if you are using generators (or `await`, if you're transpiling ES7 down with Babel).
 
 Example:
 
