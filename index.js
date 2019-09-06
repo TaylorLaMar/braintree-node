@@ -84,6 +84,8 @@ module.exports = function(config) {
         const streamLength = response.ids.length;
         const transactions = [];
         let counter = 0;
+
+        if (!streamLength) resolve([]);
         
         await new Promise((res) => {
           response.each(function (err, transaction) {
